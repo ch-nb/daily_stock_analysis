@@ -290,18 +290,17 @@ jobs:
             tail -30 logs/stock_analysis_*.log 2>/dev/null || echo "无日志"
           fi
   
-      - name: Send report to WeChat via Server酱
+           - name: Send all reports to WeChat via Server酱
         if: success()
         run: |
-          # 找到最新的报告文件
-          REPORT_FILE=$(ls reports/*.md | head -1)
-          if [ -z "$REPORT_FILE" ]; then
-            echo "未找到报告文件"
-            exit 0
-          fi
-          # 读取报告前30行（避免超过长度限制）
-          REPORT_CONTENT=$(head -30 "$REPORT_FILE" | sed 's/#//g' | sed 's/\n/<br>/g')
-          # 调用 Server酱 API 推送
+          # 遍历reports文件夹里所有报告，拼接全部内容
+          REPORT_CONTENT=""
+          for file in reports/*.md; do
+            REPORT_CONTENT+="===== 新一份股票分析报告 =====<br>"
+            REPORT_CONTENT+=$(cat "$file" | head -40 | sed ':a;N;$!ba;s/\n/<br>/g')
+            REPORT_CONTENT+="<br><br>"
+          done
+          # 推送所有报告到微信
           curl -X POST "https://sctapi.ftqq.com/${{ secrets.SERVER_SENDKEY }}.send" \
-            -d "title=📈 每日股票分析报告" \
-            -d "desp=${REPORT_CONTENT}"
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -d "title=📈 每日股票分析（共`ls reports/*.md | wc -l`份）&desp=${REPORT_CONTENT}"
