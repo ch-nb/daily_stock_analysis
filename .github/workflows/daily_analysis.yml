@@ -289,10 +289,11 @@ jobs:
             echo "📜 最近日志（最后 30 行）:"
             tail -30 logs/stock_analysis_*.log 2>/dev/null || echo "无日志"
           fi
-  
-       - name: Send all reports to WeChat via Server酱
+      - name: Send all reports to WeChat via Server酱
         if: success()
         run: |
+          set +e  # 允许下面的命令执行失败，防止因为文件不存在导致脚本中断
+          
           # 遍历reports文件夹所有报告，拼接全部内容
           REPORT_CONTENT=""
           for file in reports/*.md; do
