@@ -708,7 +708,15 @@ def main() -> int:
         logger.info("\n程序执行完成")
 
         # 如果启用了服务且是非定时任务模式，保持程序运行
-        keep_running = start_serve and not (args.schedule or config.schedule_enabled)
+       # keep_running = start_serve and not (args.schedule or config.schedule_enabled)
+# 🔒 强制GitHub Actions不进入死循环
+import os
+if os.getenv("GITHUB_ACTIONS") == "true":
+    keep_running = False
+    logger.info("🔧 GitHub环境：跳过死循环，单次运行")
+else:
+    keep_running = start_serve and not (args.schedule or config.schedule_enabled)
+        
         if keep_running:
             logger.info("API 服务运行中 (按 Ctrl+C 退出)...")
             try:
