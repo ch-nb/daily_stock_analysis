@@ -706,10 +706,10 @@ def main() -> int:
             logger.info("配置为不立即运行分析 (RUN_IMMEDIATELY=false)")
 
         logger.info("\n程序执行完成")
-
-        # 如果启用了服务且是非定时任务模式，保持程序运行
-       # keep_running = start_serve and not (args.schedule or config.schedule_enabled)
-
+   
+    
+    # 如果启用了服务且是非定时任务模式，保持程序运行
+    # keep_running = start_serve and not (args.schedule or config.schedule_enabled)
     # 🔒 GitHub Actions 卡死修复：强制单次运行，不进入死循环
     import os
     if os.getenv("GITHUB_ACTIONS") == "true":
@@ -726,7 +726,7 @@ def main() -> int:
         except KeyboardInterrupt:
             pass
     return 0
-    
+
 # --- GitHub Actions 优化 + 全局异常捕获（整合到入口，避免重复调用）---
 if __name__ == "__main__":
     import os
