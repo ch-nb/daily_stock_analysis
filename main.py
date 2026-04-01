@@ -728,5 +728,17 @@ def main() -> int:
         return 1
 
 
+# if __name__ == "__main__":
+ #   sys.exit(main())
+
 if __name__ == "__main__":
-    sys.exit(main())
+    # --- GitHub Actions 优化：自动识别环境 ---
+    import os
+    # 如果是在GitHub Actions上运行，强制只跑一次，不阻塞
+    if os.getenv("GITHUB_ACTIONS") == "true":
+        print("🔧 检测到GitHub Actions环境，强制开启单次运行模式...")
+        # 直接调用主函数，跑完就退出
+        main()
+    else:
+        # 本地环境：保持原样，支持后台调度
+        sys.exit(main())
