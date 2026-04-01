@@ -709,44 +709,41 @@ def main() -> int:
 
         # 如果启用了服务且是非定时任务模式，保持程序运行
        # keep_running = start_serve and not (args.schedule or config.schedule_enabled)
-# 🔒 强制GitHub Actions不进入死循环
-import os
-if os.getenv("GITHUB_ACTIONS") == "true":
-    keep_running = False
-    logger.info("🔧 GitHub环境：跳过死循环，单次运行")
-else:
-    keep_running = start_serve and not (args.schedule or config.schedule_enabled)
-        
-        if keep_running:
-            logger.info("API 服务运行中 (按 Ctrl+C 退出)...")
-            try:
-                while True:
-                    time.sleep(1)
-            except KeyboardInterrupt:
-                pass
 
-        return 0
+    # 🔒 GitHub Actions 卡死修复：强制单次运行，不进入死循环
+    import os
+    if os.getenv("GITHUB_ACTIONS") == "true":
+        keep_running = False
+        logger.info("🔧 GitHub环境：跳过死循环，单次运行")
+    else:
+        keep_running = start_serve and not (args.schedule or config.schedule_enabled)
 
+    if keep_running:
+        logger.info("API 服务运行中（按 Ctrl+C 退出）...")
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            pass
+    return 0
+    
+# --- GitHub Actions 优化 + 全局异常捕获（整合到入口，避免重复调用）---
+if __name__ == "__main__":
+    import os
+    import sys
+    try:
+        # 如果是在GitHub Actions上运行, 强制只跑一次, 不阻塞
+        if os.getenv("GITHUB_ACTIONS") == "true":
+            print("✅ 检测到GitHub Actions环境, 强制开启单次运行模式...")
+            # 直接调用主函数, 跑完强制退出, 绝不残留
+            main()
+            exit(0)
+        else:
+            # 本地环境: 保持原样, 支持后台调度
+            sys.exit(main())
     except KeyboardInterrupt:
         logger.info("\n用户中断，程序退出")
-        return 130
-
+        sys.exit(130)
     except Exception as e:
         logger.exception(f"程序执行失败: {e}")
-        return 1
-
-
-# if __name__ == "__main__":
- #   sys.exit(main())
-
-if __name__ == "__main__":
-    # --- GitHub Actions 优化：自动识别环境 ---
-    import os
-    # 如果是在GitHub Actions上运行，强制只跑一次，不阻塞
-    if os.getenv("GITHUB_ACTIONS") == "true":
-        print("🔧 检测到GitHub Actions环境，强制开启单次运行模式...")
-        # 直接调用主函数，跑完就退出
-        main()
-    else:
-        # 本地环境：保持原样，支持后台调度
-        sys.exit(main())
+        sys.exit(1)
