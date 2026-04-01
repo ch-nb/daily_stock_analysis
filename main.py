@@ -709,8 +709,7 @@ def main() -> int:
    
     
     # 如果启用了服务且是非定时任务模式，保持程序运行
-
-    # 原来的keep_running逻辑，外层大try块（必须完整成对！绝对不能删except！）
+    # 外层大try块（必须完整成对，绝对不能拆！）
     try:
         # 🔒 GitHub Actions 卡死修复：强制单次运行，不进入死循环
         import os
@@ -733,17 +732,17 @@ def main() -> int:
         logger.exception(f"程序执行失败: {e}")
         return 1
 
-# --- GitHub Actions 优化 + 全局异常捕获（入口层，避免重复调用）---
+# --- GitHub Actions 优化 + 全局异常捕获（入口层，结构完整）---
 if __name__ == "__main__":
     import os
     import sys
     try:
-        # 如果是GitHub Actions环境，强制单次运行，跑完直接退出
+        # GitHub Actions环境：强制单次运行，跑完直接退出
         if os.getenv("GITHUB_ACTIONS") == "true":
             print("✅ 检测到GitHub Actions环境，强制开启单次运行模式...")
             main()
             exit(0)
-        # 本地环境，保留原有后台调度逻辑
+        # 本地环境：保留原有后台调度逻辑
         else:
             sys.exit(main())
     # 异常捕获，必须完整成对
